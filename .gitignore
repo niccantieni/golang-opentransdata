@@ -1,0 +1,5 @@
+% ignore GoLand
+.idea
+
+% ignore .env for storing API-Key etc.
+.env
