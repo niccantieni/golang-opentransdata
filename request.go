@@ -10,6 +10,8 @@ import (
 
 var (
 	apiURL = "https://api.opentransportdata.swiss/trias2020"
+	//Used for timestamp formatting
+	ShortRFC3339 = "2006-01-02T15:04:05Z"
 )
 
 //OTDRequest is a struct to store the needed data for the request creation
@@ -30,17 +32,17 @@ type OTDParameters struct {
 }
 
 //NewOTDRequest is a constructor for OTDRequest
-func NewOTDRequest(timestamp string, stopPointRef string, depArrTime string) OTDRequest {
+func NewOTDRequest(timestamp string, stopPointRef string, depArrTime string, NumberOfResults string, StopEventType string, IncludePreviousCalls bool, IncludeOnwardCalls bool, IncludeRealtimeData bool) OTDRequest {
 	request := OTDRequest{
 		Timestamp:    timestamp,
 		StopPointRef: stopPointRef,
 		DepArrTime:   depArrTime,
 		Parameters: OTDParameters{
-			NumberOfResults:      "1",
-			StopEventType:        "departure",
-			IncludePreviousCalls: false,
-			IncludeOnwardCalls:   false,
-			IncludeRealtimeData:  true,
+			NumberOfResults:      NumberOfResults,
+			StopEventType:        StopEventType,
+			IncludePreviousCalls: IncludePreviousCalls,
+			IncludeOnwardCalls:   IncludeOnwardCalls,
+			IncludeRealtimeData:  IncludeRealtimeData,
 		},
 	}
 	return request
@@ -52,10 +54,7 @@ func CreateRequest(OTDApiKey string, request OTDRequest) (response *http.Respons
 	now := time.Now()
 
 	//create Timestamp format
-	timestamp := strings.Split(now.Format(time.RFC3339), "+")[0] + "Z"
-
-	//set Timestamp in struct
-	request.Timestamp = timestamp
+	request.Timestamp = now.Format(ShortRFC3339)
 
 	//create XML Request
 	XMLRequest := CreateXML(request)
