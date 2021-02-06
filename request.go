@@ -12,6 +12,7 @@ var (
 	apiURL = "https://api.opentransportdata.swiss/trias2020"
 	//Used for timestamp formatting
 	ShortRFC3339 = "2006-01-02T15:04:05Z"
+	zurich, _    = time.LoadLocation("Europe/Zurich")
 )
 
 //OTDRequest is a struct to store the needed data for the request creation

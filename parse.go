@@ -10,15 +10,19 @@ type Text struct {
 	Language string `xml:"Language"`
 }
 
+//Timetable makes the mapping for ServiceArrival and -Departure to a somewhat useful time
 type Timetable struct {
 	TimetabledTime Time `xml:"TimetabledTime"`
 	EstimatedTime  Time `xml:"EstimatedTime"`
 }
 
+//Time is used to map to a "real" golang time.Time. At the moment, just the string is parsed
+//from the XML, the automatic conversion to something useful is not implemented yet.
 type Time struct {
 	Time   time.Time
 	String string `xml:",chardata"`
 }
+
 type Trias struct {
 	XMLName         xml.Name        `xml:"Trias"`
 	SiriNS          string          `xml:"siri,attr"`
