@@ -2,6 +2,7 @@ package opentransdata
 
 import (
 	"encoding/xml"
+	"time"
 )
 
 type Text struct {
@@ -9,11 +10,15 @@ type Text struct {
 	Language string `xml:"Language"`
 }
 
-type Time struct {
-	TimetabledTime string `xml:"TimetabledTime"`
-	EstimatedTime  string `xml:"EstimatedTime"`
+type Timetable struct {
+	TimetabledTime Time `xml:"TimetabledTime"`
+	EstimatedTime  Time `xml:"EstimatedTime"`
 }
 
+type Time struct {
+	Time   time.Time
+	String string `xml:",chardata"`
+}
 type Trias struct {
 	XMLName         xml.Name        `xml:"Trias"`
 	SiriNS          string          `xml:"siri,attr"`
@@ -27,7 +32,7 @@ type Trias struct {
 
 type ServiceDelivery struct {
 	XMLName           xml.Name        `xml:"ServiceDelivery"`
-	ResponseTimestamp string          `xml:"ResponseTimestamp"`
+	ResponseTimestamp Time            `xml:"ResponseTimestamp"`
 	ProducerRef       string          `xml:"ProducerRef"`
 	Status            bool            `xml:"Status"`
 	Language          string          `xml:"Language"`
@@ -98,14 +103,14 @@ type Service struct {
 }
 
 type CallAtStop struct {
-	XMLName          xml.Name `xml:"CallAtStop"`
-	StopPointRef     string   `xml:"StopPointRef"`
-	StopPointName    Text     `xml:"StopPointName"`
-	PlannedBay       Text     `xml:"PlannedBay"`
-	EstimatedBay     Text     `xml:"EstimatedBay"`
-	ServiceArrival   Time     `xml:"ServiceArrival"`
-	ServiceDeparture Time     `xml:"ServiceDeparture"`
-	StopSeqNumber    int      `xml:"StopSeqNumber"`
+	XMLName          xml.Name  `xml:"CallAtStop"`
+	StopPointRef     string    `xml:"StopPointRef"`
+	StopPointName    Text      `xml:"StopPointName"`
+	PlannedBay       Text      `xml:"PlannedBay"`
+	EstimatedBay     Text      `xml:"EstimatedBay"`
+	ServiceArrival   Timetable `xml:"ServiceArrival"`
+	ServiceDeparture Timetable `xml:"ServiceDeparture"`
+	StopSeqNumber    int       `xml:"StopSeqNumber"`
 }
 
 type Mode struct {
@@ -124,5 +129,6 @@ type Attribute struct {
 func ParseXML(input []byte) (out Trias, err error) {
 	var parsed Trias
 	err = xml.Unmarshal(input, &parsed)
+
 	return parsed, err
 }
