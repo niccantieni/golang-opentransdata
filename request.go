@@ -12,7 +12,6 @@ var (
 	apiURL = "https://api.opentransportdata.swiss/trias2020"
 	//Used for timestamp formatting
 	ShortRFC3339 = "2006-01-02T15:04:05Z"
-	zurich, _    = time.LoadLocation("Europe/Zurich")
 )
 
 //OTDRequest is a struct to store the needed data for the request creation
@@ -33,8 +32,9 @@ type OTDParameters struct {
 }
 
 //NewOTDRequest is a constructor for OTDRequest
-func NewOTDRequest(timestamp string, stopPointRef string, depArrTime string, NumberOfResults string, StopEventType string, IncludePreviousCalls bool, IncludeOnwardCalls bool, IncludeRealtimeData bool) OTDRequest {
-	request := OTDRequest{
+func NewOTDRequest(timestamp string, stopPointRef string, depArrTime string, NumberOfResults string, StopEventType string,
+	IncludePreviousCalls bool, IncludeOnwardCalls bool, IncludeRealtimeData bool) (request OTDRequest) {
+	request = OTDRequest{
 		Timestamp:    timestamp,
 		StopPointRef: stopPointRef,
 		DepArrTime:   depArrTime,
@@ -49,8 +49,27 @@ func NewOTDRequest(timestamp string, stopPointRef string, depArrTime string, Num
 	return request
 }
 
+//TemplateOTDRequestNow creates a OTDRequest for general use, with somewhat useful settings;
+//depArrTime = now, no previous and onward calls, with live timetable,
+//stationID needs to be set afterwards
+func TemplateOTDRequestNow() (request OTDRequest) {
+	//Load Location in Zürich, everything else does not make much sense
+	zurich, _ := time.LoadLocation("Europe/Zurich")
+
+	//current time in Zurich
+	now := time.Now().In(zurich)
+
+	//format timestamp as timestamp correctly; OTD interprets this as localtime (somehow, but not really?!?)
+	//whatever, it works like this to get the current (as in right now, instant) events.
+	depArrTime := now.Format(ShortRFC3339)
+
+	request = NewOTDRequest("", "", depArrTime, "1", "departure", false, false, true)
+
+	return request
+}
+
 //CreateRequest creates a HTTP-Request to OpenTransportData with the given input and API-Key
-func CreateRequest(OTDApiKey string, request OTDRequest) (response *http.Response, data []byte, err error) {
+func CreateRequest(OTDApiKey string, request OTDRequest) (data []byte, err error) {
 	//get time
 	now := time.Now()
 
@@ -64,10 +83,9 @@ func CreateRequest(OTDApiKey string, request OTDRequest) (response *http.Respons
 	body := strings.NewReader(XMLRequest)
 
 	//Create request
-	req, createErr := http.NewRequest("POST", apiURL, body)
-
-	if createErr != nil {
-		return nil, nil, createErr
+	req, err := http.NewRequest("POST", apiURL, body)
+	if err != nil {
+		return data, err
 	}
 
 	//add content-type and authorization headers
@@ -75,24 +93,22 @@ func CreateRequest(OTDApiKey string, request OTDRequest) (response *http.Respons
 	req.Header.Add("Authorization", OTDApiKey)
 
 	//execute request
-	res, retrieveErr := http.DefaultClient.Do(req)
-
-	if retrieveErr != nil {
-		return res, nil, retrieveErr
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return data, err
 	}
 
 	//read from response
-	data, readErr := ioutil.ReadAll(res.Body)
-
-	if readErr != nil {
-		return res, data, readErr
+	data, err = ioutil.ReadAll(res.Body)
+	if err != nil {
+		return data, err
 	}
 
 	//close reader
-	_ = res.Body.Close()
+	err = res.Body.Close()
 
 	//return
-	return res, data, nil
+	return data, err
 }
 
 //CreateXML creates a string containing the appropriate XML from the given input

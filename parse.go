@@ -130,9 +130,8 @@ type Attribute struct {
 	Code    string   `xml:"Code"`
 }
 
-func ParseXML(input []byte) (out Trias, err error) {
-	var parsed Trias
-	err = xml.Unmarshal(input, &parsed)
+func ParseXML(input []byte) (trias Trias, err error) {
+	err = xml.Unmarshal(input, &trias)
 
-	return parsed, err
+	return trias, err
 }
